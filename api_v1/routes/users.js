@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 const User = require('../models/user');
 
-
-mongoose.connect(
-    'mongodb://admin:admin@node-test-shard-00-00-uamiy.mongodb.net:27017,node-test-shard-00-01-uamiy.mongodb.net:27017,node-test-shard-00-02-uamiy.mongodb.net:27017/test?ssl=true&replicaSet=node-test-shard-0&authSource=admin&retryWrites=true'
-);
+// const connection = mongoose.connection;
+//
+// router.delete("/", (req, res, next) => {
+//     connection.dropDatabase();
+//     res.status(200);
+// });
 
 /* GET users listing */
 router.get('/', function (req, res, next) {
-
     User.find()
         .exec()
         .then(users => {
@@ -39,21 +41,45 @@ router.get('/:userId', function (req, res, next) {
 });
 
 /* POST user */
-router.post('/', function (req, res, next) {
-    const user = new User({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        lastName: req.body.lastName
-    });
-    user.save()
-        .then(result => {
-            console.log('result', result);
-            res.status(201).json({result});
-        })
-        .catch(err => {
-            const error = new Error(err);
-            error.status = 404;
-            next(error);
+
+router.post('/create', function (req, res, next) {
+    User.find({email: req.body.email})
+        .exec()
+        .then(user => {
+            if (user.length >= 1) {
+                return res.status(409).json({
+                    message: "Mail exists"
+                });
+            } else {
+                bcrypt.hash(req.body.password, 10, (err, hash) => {
+                    if (err) {
+                        return res.status(500).json({
+                            error: err
+                        })
+                    } else {
+                        const user = new User({
+                            _id: new mongoose.Types.ObjectId(),
+                            username: req.body.username,
+                            password: hash,
+                            email: req.body.email
+                        });
+                        user.save()
+                            .then(result => {
+                                res.status(201).json({
+                                    username: result.username,
+                                    password: result.password,
+                                    email: result.email
+                                });
+                            })
+                            .catch(err => {
+                                const error = new Error(err);
+                                error.status = 404;
+                                next(error);
+                            });
+                    }
+                });
+            }
+
         });
 });
 
