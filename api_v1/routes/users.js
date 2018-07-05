@@ -2,41 +2,10 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-// const connection = mongoose.connection;
-//
-// router.delete("/", (req, res, next) => {
-//     connection.dropDatabase();
-//     res.status(200);
-// });
-
-/* GET users listing */
-router.get('/', async (req, res, next) => {
-    try {
-        const users = await User.find().exec();
-        res.status(200).json(users)
-    } catch (err) {
-        const error = new Error(err);
-        error.status = 404;
-        next(error);
-    }
-});
-
-/* GET user by id */
-router.get('/:userId', async (req, res, next) => {
-    const id = req.params.userId;
-    try {
-        const user = await User.findById(id).exec();
-        res.status(200).json(user)
-    } catch (err) {
-        const error = new Error(err);
-        error.status = 404;
-        next(error);
-    }
-});
-
-/* POST user */
+/* Create user */
 
 router.post('/create', async (req, res, next) => {
 
@@ -75,7 +44,65 @@ router.post('/create', async (req, res, next) => {
             }
         });
     }
-
 });
+
+/* Login user */
+
+router.post('/login', async (req, res, next) => {
+    console.log('cookie', req.cookies);
+    const user = await User.find({email: req.body.email}).exec();
+    if (user.length < 1) {
+        return res.status(401).json({
+            message: "Auth failed"
+        });
+    }
+    const match = await bcrypt.compare(req.body.password, user[0].password);
+    if (match) {
+        const payload = {
+            email: user[0].email
+        };
+        const token = jwt.sign(payload, 'secret', {expiresIn: '7h'});
+        return res.cookie('token', 'token').json({
+            msg: "Auth successful"
+        });
+    }
+    return res.status(401).json({
+        message: "Auth failed"
+    });
+});
+
+/* GET users listing */
+
+router.get('/', async (req, res, next) => {
+    try {
+        const users = await User.find().exec();
+        res.status(200).json(users)
+    } catch (err) {
+        const error = new Error(err);
+        error.status = 404;
+        next(error);
+    }
+});
+
+/* GET user by id */
+
+router.get('/:userId', async (req, res, next) => {
+    const id = req.params.userId;
+    try {
+        const user = await User.findById(id).exec();
+        res.status(200).json(user)
+    } catch (err) {
+        const error = new Error(err);
+        error.status = 404;
+        next(error);
+    }
+});
+
+// const connection = mongoose.connection;
+//
+// router.delete("/", (req, res, next) => {
+//     connection.dropDatabase();
+//     res.status(200);
+// });
 
 module.exports = router;
