@@ -50,25 +50,29 @@ router.post('/create', async (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
     console.log('cookie', req.cookies);
-    const user = await User.find({email: req.body.email}).exec();
-    if (user.length < 1) {
+    try {
+        const user = await User.find({email: req.body.email}).exec();
+        if (user.length < 1) {
+            return res.status(401).json({
+                message: "Auth failed"
+            });
+        }
+        const match = await bcrypt.compare(req.body.password, user[0].password);
+        if (match) {
+            const payload = {
+                email: user[0].email
+            };
+            const token = jwt.sign(payload, 'secret', {expiresIn: '7h'});
+            return res.cookie('token', 'token', {httpOnly : false}).json({
+                responsePayload: token,
+                msg: "Auth successful"
+            });
+        }
+    } catch (err) {
         return res.status(401).json({
             message: "Auth failed"
         });
     }
-    const match = await bcrypt.compare(req.body.password, user[0].password);
-    if (match) {
-        const payload = {
-            email: user[0].email
-        };
-        const token = jwt.sign(payload, 'secret', {expiresIn: '7h'});
-        return res.cookie('token', 'token').json({
-            msg: "Auth successful"
-        });
-    }
-    return res.status(401).json({
-        message: "Auth failed"
-    });
 });
 
 /* GET users listing */
