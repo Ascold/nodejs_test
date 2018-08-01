@@ -102,11 +102,4 @@ router.get('/:userId', async (req, res, next) => {
     }
 });
 
-// const connection = mongoose.connection;
-//
-// router.delete("/", (req, res, next) => {
-//     connection.dropDatabase();
-//     res.status(200);
-// });
-
 module.exports = router;
