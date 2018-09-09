@@ -1,18 +1,17 @@
-import router from './routes/users';
+import * as express from 'express'
+import userRouter from './routes/users';
 import { Express } from 'express';
 
-export class ApiV1 {
+class ApiV1 {
     public app: Express;
 
-    public mountApi(app): void {
-        this.app = app;
-        app.use('/users', router);
-        app.use((req, res, next) => {
-            res.status(404).json({
-                error: {
-                    message: 'error'
-                }
-            });
-        });
+    constructor() {
+        this.app = express();
+        this.mountApi();
+    }
+
+    public mountApi(): void {
+        this.app.use('/users', userRouter);
     }
 }
+export default new ApiV1().app

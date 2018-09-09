@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose'
 import * as bcrypt from 'bcrypt'
 import * as jwt from 'jsonwebtoken'
 import User from '../models/user'
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 
 class UserRoutes {
 
@@ -83,7 +83,15 @@ class UserRoutes {
         this.router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const users = await User.find().exec();
-                res.status(200).json(users);
+                let result = [];
+                users.forEach(user => {
+                    const processedUser = {
+                        username: user.username,
+                        email: user.email
+                    };
+                    result.push(processedUser);
+                });
+                res.status(200).json(result);
             } catch (err) {
                 res.status(404);
                 // const error = new Error(err);

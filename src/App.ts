@@ -3,12 +3,11 @@ import * as mongoose from 'mongoose'
 import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import { Express } from 'express';
-import { ApiV1 } from './apiV1/apiV1';
+import ApiV1 from './apiV1/apiV1';
 
 class App {
 
     public app: Express;
-    public mountApiV1 = new ApiV1();
     private dbConnectionString: string = 'mongodb://admin:admin@node-test-shard-00-00-uamiy.mongodb.net:27017,node-test-shard-00-01-uamiy.mongodb.net:27017,node-test-shard-00-02-uamiy.mongodb.net:27017/test?ssl=true&replicaSet=node-test-shard-0&authSource=admin&retryWrites=true';
 
     constructor () {
@@ -16,7 +15,8 @@ class App {
         this.handleCors();
         this.parseRequest();
         this.connectDb();
-        this.mountApiV1.mountApi(this.app);
+        this.mountApiV1();
+        this.handleErrors();
     }
 
     private handleCors(): void {
@@ -44,6 +44,20 @@ class App {
 
     private connectDb(): void {
         mongoose.connect(this.dbConnectionString);
+    }
+
+    private mountApiV1(): void {
+        this.app.use('/api/v1', ApiV1);
+    }
+
+    private handleErrors(): void {
+        this.app.use((req, res, next) => {
+            res.status(404).json({
+                error: {
+                    message: 'error'
+                }
+            });
+        });
     }
 }
 
