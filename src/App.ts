@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose'
 import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import { Express } from 'express';
-import ApiV1 from './apiV1/apiV1';
+import ApiController from './apiV1/apiControllerV1';
 
 class App {
 
@@ -47,7 +47,7 @@ class App {
     }
 
     private mountApiV1(): void {
-        this.app.use('/api/v1', ApiV1);
+        this.app.use('/api/v1', ApiController);
     }
 
     private handleErrors(): void {

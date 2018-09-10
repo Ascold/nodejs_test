@@ -2,7 +2,7 @@ import * as express from 'express'
 import * as mongoose from 'mongoose'
 import * as bcrypt from 'bcrypt'
 import * as jwt from 'jsonwebtoken'
-import User from '../models/user'
+import User from '../../models/user'
 import {NextFunction, Request, Response} from 'express';
 
 class UserRoutes {

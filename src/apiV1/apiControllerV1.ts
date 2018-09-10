@@ -1,8 +1,8 @@
 import * as express from 'express'
-import userRouter from './routes/users';
+import userRouter from './controllers/users';
 import { Express } from 'express';
 
-class ApiV1 {
+class ApiController {
     public app: Express;
 
     constructor() {
@@ -14,4 +14,4 @@ class ApiV1 {
         this.app.use('/users', userRouter);
     }
 }
-export default new ApiV1().app
+export default new ApiController().app

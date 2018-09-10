@@ -1,6 +1,6 @@
 import app from './App'
 
-class Index {
+class Server {
     private port;
 
     constructor() {
@@ -18,4 +18,4 @@ class Index {
     }
 }
 
-new Index();
+new Server();
