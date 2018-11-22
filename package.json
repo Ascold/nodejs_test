@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "tsc": "tsc && node ./dist/index.js"
+    "tsc": "tsc && node --inspect ./dist/index.js"
   },
   "dependencies": {
     "@types/es6-shim": "^0.31.37",

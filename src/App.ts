@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose'
 import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import { Express } from 'express';
-import ApiController from './apiV1/apiControllerV1';
+import ApiController from './api-v1/api-controller-v1';
 
 class App {
 
