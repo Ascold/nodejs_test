@@ -1,9 +1,11 @@
 import * as express from 'express'
-import * as jwt from 'jsonwebtoken'
 
 import {NextFunction, Request, Response} from 'express';
 
-import {UserRepository} from "../repository/users-repository";
+import {UserRepository} from "../data/repository/users-repository";
+import {UserModel} from "./models/user.model";
+import {ErrorsConstant} from "./constants/errors.constant";
+import {SuccessConstant} from "./constants/success.constant";
 
 class UserRoutes {
 
@@ -19,70 +21,45 @@ class UserRoutes {
     public mountRoutes(): void {
         this.router.post('/create', async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const user = await this.usersRepository.emailCheck(req.body.email);
-                if (user.length >= 1) {
-                    return res.status(409).json({
-                        message: "Mail exists"
-                    });
-                }
-                const result = await this.usersRepository.createUser(req);
+                const result: UserModel = await this.usersRepository.createUser(req);
                 res.status(201).json({
                     username: result.username,
                     password: result.password,
                     email: result.email
                 });
             } catch (err) {
-                res.status(500).json({
-                    error: "Signup failed"
+                res.status(ErrorsConstant.code[err.message] || ErrorsConstant.code.default_error).json({
+                    error: ErrorsConstant.message[err.message] || ErrorsConstant.message.default_error
                 })
             }
 
         });
         this.router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const user = await this.usersRepository.emailCheck(req);
-                if (user.length < 1) {
-                    return res.status(401).json({
-                        message: "Auth failed"
-                    });
-                }
-                const match = await this.usersRepository.passwordCheck(req, user);
-                if (match) {
-                    const payload = {
-                        email: user[0].email
-                    };
-                    const token = jwt.sign(payload, 'secret', {expiresIn: '7h'});
-                    return res.status(200).json({
-                        responsePayload: token,
-                        msg: "Auth successful"
-                    });
-                }
-            } catch (err) {
-                return res.status(401).json({
-                    message: "Auth failed"
+                const token = await this.usersRepository.loginUser(req);
+                return res.status(+SuccessConstant.code.auth_success).json({
+                    responsePayload: token,
+                    msg: SuccessConstant.message.auth_success
                 });
+            } catch (err) {
+                res.status(ErrorsConstant.code[err.message] || ErrorsConstant.code.default_error).json({
+                    error: ErrorsConstant.message[err.message] || ErrorsConstant.message.default_error
+                })
             }
         });
         this.router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const users = await this.usersRepository.getUsers();
-                let result = [];
-                users.forEach(user => {
-                    const processedUser = {
-                        username: user.username,
-                        email: user.email
-                    };
-                    result.push(processedUser);
-                });
+                const result = await this.usersRepository.getUsers();
                 res.status(200).json(result);
             } catch (err) {
-                res.status(404);
+                res.status(ErrorsConstant.code[err.message] || ErrorsConstant.code.default_error).json({
+                    error: ErrorsConstant.message[err.message] || ErrorsConstant.message.default_error
+                })
             }
         });
         this.router.get('/:userId', async (req: Request, res: Response, next: NextFunction) => {
-            const id = req.params.userId;
             try {
-                const user = await this.usersRepository.getUser(id);
+                const user = await this.usersRepository.getUser(req.params.userId);
                 res.status(200).json(user)
             } catch (err) {
                 res.status(404);
